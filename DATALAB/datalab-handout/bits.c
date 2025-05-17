@@ -342,7 +342,50 @@ int conditional(int x, int y, int z) {
  *   Rating: 3
  */
 int isLessOrEqual(int x, int y) {
-  return 2;
+  /* 
+  
+  */
+  int mask = 1;
+  mask = mask << 31;
+  mask = ~mask;
+
+  int detect_Tmin = x^mask;
+  // if x is Tmin, detect_Tmin would be 0. if x is Tmin, y >= x must be true and the final result would be 1;
+  detect_Tmin = ~detect_Tmin;
+
+  int minus_x = ~x+1;
+
+  /*
+  if both y and minus_x have different sign, detect_same_sign = 0b1.....1;
+  if both y and minus_x have same sign, detect_same_sign = 0b0....0;
+  */
+  int detect_same_sign = y^minus_x;
+  detect_same_sign = detect_same_sign >> 31;
+
+  /*
+  when y and minus_x have same sign a.k.a detect_same_sign = 0b0.....0:
+
+  If both y and minus_x are negative which means y must smaller than minus_x, same_sign_condition = ob1....1;
+  In this case, the final result should be 0;
+
+  If both y and minus_x are positive which means y must bigger than minus_x, same_sign_condition = ob0....0;
+  In this case, the final result should be 1;
+  */
+  int same_sign_condition = y&minus_x;
+  same_sign_condition = same_sign_condition >> 31;
+
+  // we only use y-x when y and minus_x have different sign otherwise there is a risk of overflowing.
+  int y_minus_x = y+minus_x;
+
+  /*
+  when y>x, sign of y-x is 0;
+  */
+  int sign_y_minus_x = y_minus_x >> 31;
+  int B;
+  // printf('this is x:%d',x);
+  // printf('this is y:%d',y);
+  // printf('this is the result:%d',!((detect_same_sign|same_sign_condition)&((~detect_same_sign)|sign_y_minus_x)&detect_Tmin));
+  return !((detect_same_sign|same_sign_condition)&((~detect_same_sign)|sign_y_minus_x)&detect_Tmin);
 }
 //4
 /* 
